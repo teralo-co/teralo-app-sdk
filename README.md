@@ -9,7 +9,8 @@ contract an app gets:
 - `teralo-app`: the command that builds and publishes an app.
 
 Start from [teralo-app-hello](https://github.com/teralo-co/teralo-app-hello), the smallest
-complete app.
+complete app. [GUIDE.md](GUIDE.md) walks through building one step by step, with a real app as
+the worked example; this README is the API reference.
 
 > **Status: 0.x.** Only apps made by Teralo are published for now. Outside authors come later,
 > through publishing from a public GitHub repository.
