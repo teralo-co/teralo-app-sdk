@@ -23,7 +23,7 @@
 		}
 	},
 	"bin": {
-		"teralo-app": "./bin/teralo-app.js"
+		"teralo-app": "bin/teralo-app.js"
 	},
 	"files": [
 		"client.js",
