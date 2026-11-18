@@ -1,0 +1,45 @@
+{
+	"name": "@teralo-co/apps",
+	"version": "0.1.0",
+	"description": "Build mini apps that run inside Teralo: the bridge to Teralo's page, typed access to Teralo data and the app's own database, and the build and publish command.",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/teralo-co/teralo-app-sdk.git"
+	},
+	"homepage": "https://github.com/teralo-co/teralo-app-sdk#readme",
+	"type": "module",
+	"engines": {
+		"node": ">=20"
+	},
+	"exports": {
+		"./client": {
+			"types": "./client.d.ts",
+			"default": "./client.js"
+		},
+		"./server": {
+			"types": "./server.d.ts",
+			"default": "./server.js"
+		}
+	},
+	"bin": {
+		"teralo-app": "./bin/teralo-app.js"
+	},
+	"files": [
+		"client.js",
+		"client.d.ts",
+		"server.js",
+		"server.d.ts",
+		"bin/",
+		"lib/"
+	],
+	"scripts": {
+		"test": "node --test test/"
+	},
+	"dependencies": {
+		"esbuild": "^0.28.2"
+	},
+	"publishConfig": {
+		"access": "public"
+	}
+}
