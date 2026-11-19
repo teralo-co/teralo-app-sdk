@@ -16,7 +16,10 @@ export function defineApp(handle) {
 			const teralo = {
 				project: () => gate.call('project.get'),
 				person: () => gate.call('person.get'),
-				locations: () => gate.call('locations.list')
+				locations: () => gate.call('locations.list'),
+				people: () => gate.call('people.list'),
+				attendance: () => gate.call('attendance.list'),
+				equipment: () => gate.call('equipment.list')
 			};
 			return handle({ request, url: new URL(request.url), teralo, db });
 		}

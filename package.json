@@ -1,6 +1,6 @@
 {
 	"name": "@teralo-co/apps",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"description": "Build mini apps that run inside Teralo: the bridge to Teralo's page, typed access to Teralo data and the app's own database, and the build and publish command.",
 	"license": "MIT",
 	"repository": {

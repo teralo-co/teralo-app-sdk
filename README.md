@@ -73,6 +73,9 @@ files for now; images and fonts are not served yet.
 | `project:read` | See the name, currency, locale and time zone of the projects it is switched on for   |
 | `person:read`  | See the name of the person using it, and whether they hold the app's higher level    |
 | `locations:read` | See the names of the locations (buildings, levels, areas) set up on the projects it is switched on for |
+| `people:read` | See the names and companies of the people on the projects it is switched on for |
+| `attendance:read` | See which inducted workers signed in on site on each of the last 14 days, with their names and employers, on the projects it is switched on for |
+| `equipment:read` | See the equipment and plant register (make, model, serial and registration numbers, owner and status) of the projects it is switched on for |
 | `database`     | Keep its own data in Teralo, in a separate database for each project                 |
 
 ## Server: `@teralo-co/apps/server`
@@ -96,6 +99,19 @@ export default defineApp(async ({ request, url, teralo, db }) => {
   level, which an organisation grants in its permission templates (Apps: manage).
 - `teralo.locations()`: `[{ id, name, parentId }]` (`locations:read`), the project's location tree
   flat, in Teralo's order; a top-level location has `parentId: null`.
+- `teralo.people()`: `[{ id, name, company }]` (`people:read`), the people on the project now, at
+  most 2,000. `id` is the id `teralo.person()` answers for the same person.
+- `teralo.attendance()`: `[{ workerId, name, company, day }]` (`attendance:read`), one row per
+  inducted worker per day they signed in on site, for the project's last 14 days (today
+  included), newest day first, at most 5,000 rows. `day` is `YYYY-MM-DD` on the project's clock.
+  Site workers are not Teralo accounts: `workerId` stays the same for a worker in this install of
+  the app, means nothing anywhere else, and is never an `id` of `teralo.people()`.
+- `teralo.equipment()`: `[{ id, make, model, serialNumber, registrationNumber, category, type,
+  owner, status }]` (`equipment:read`), the project's equipment and plant register, newest first,
+  at most 2,000. `status` is `draft`, `pending_review`, `on_site`, `rejected` or `removed`.
+- The three lists answer through the person's own Teralo permissions: a person who cannot open
+  the directory, inductions or equipment on the project gets a rejected call, so catch it and
+  say so.
 - `db.all(sql, params)`, `db.one(sql, params)`, `db.run(sql, params)` (`{ rowsWritten }`) and
   `db.batch([{ sql, params }])` (all saved or none). Parameters are strings, numbers, `null` or
   `ArrayBuffer`s; always pass values as parameters, never in the SQL text.

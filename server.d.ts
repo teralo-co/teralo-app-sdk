@@ -28,12 +28,63 @@ export type Location = {
 	parentId: string | null;
 };
 
-/** Teralo data, read with the person's own permissions. A missing scope rejects. */
+/**
+ * Somebody on the project now, with a Teralo account. Needs the `people:read` scope. `id` is
+ * the id `person()` answers for the same person.
+ */
+export type ProjectPerson = {
+	id: string;
+	name: string;
+	company: string;
+};
+
+/**
+ * An inducted worker signed in on site on `day`. Needs the `attendance:read` scope. One row per
+ * worker per day, however often they signed in and out. Site workers are not Teralo accounts:
+ * `workerId` is the same for a worker every day in this install of the app and means nothing
+ * anywhere else, and it is never an id of `people()`.
+ */
+export type AttendanceDay = {
+	workerId: string;
+	name: string;
+	/** The worker's employer. */
+	company: string;
+	/** `YYYY-MM-DD` on the project's own clock (`project().timeZone`). */
+	day: string;
+};
+
+/** An item on the project's equipment and plant register. Needs the `equipment:read` scope. */
+export type Equipment = {
+	id: string;
+	make: string | null;
+	model: string | null;
+	serialNumber: string | null;
+	registrationNumber: string | null;
+	category: string | null;
+	type: string | null;
+	/** The company the equipment belongs to. */
+	owner: string;
+	status: 'draft' | 'pending_review' | 'on_site' | 'rejected' | 'removed';
+};
+
+/**
+ * Teralo data, read with the person's own permissions. A missing scope rejects, and so does a
+ * list the person may not see in Teralo itself.
+ */
 export interface Teralo {
 	project(): Promise<Project>;
 	person(): Promise<Person>;
 	/** The project's locations, in the order Teralo shows them. */
 	locations(): Promise<Location[]>;
+	/** The people on the project now, by name. At most 2,000. */
+	people(): Promise<ProjectPerson[]>;
+	/**
+	 * Who signed in on site on each of the project's last 14 days, today included, newest day
+	 * first. At most 5,000 rows.
+	 */
+	attendance(): Promise<AttendanceDay[]>;
+	/** The project's equipment register, newest first. At most 2,000. */
+	equipment(): Promise<Equipment[]>;
 }
 
 export type SqlValue = string | number | null | ArrayBuffer;
