@@ -190,10 +190,9 @@ server. Bundle any library you use: the tracker bundles Chart.js into `app.js`
   [`screens/lib.js`][lib].
 
 **What the frame will not do.** `alert()`, `confirm()` and `prompt()` never open, pop-ups are
-blocked, forms do not submit, and a link that loads another page makes Teralo close the app. A
-form's `submit` event never fires either, so an `onsubmit` handler never runs: give the button
-`type="button"` and do the work in its click handler (`actionForm()` in
-[`screens/setup.js`][setup] also checks the fields and makes Enter press the button). For a
+blocked, and a link that loads another page makes Teralo close the app. A form fires its
+`submit` event: in the `onsubmit` handler call `event.preventDefault()` and save the data
+yourself. A form left to submit sends nothing, but Teralo closes the app as for a link. For a
 destructive action use a two-click button (`confirmButton()` in [`screens/lib.js`][lib]); for a
 link inside the app, call `navigate()`.
 
@@ -292,7 +291,6 @@ when its session next renews.
 [styles]: https://github.com/teralo-co/teralo-app-concrete-reinforcement/blob/main/ui/styles.css
 [screens]: https://github.com/teralo-co/teralo-app-concrete-reinforcement/tree/main/screens
 [lib]: https://github.com/teralo-co/teralo-app-concrete-reinforcement/blob/main/screens/lib.js
-[setup]: https://github.com/teralo-co/teralo-app-concrete-reinforcement/blob/main/screens/setup.js
 [overview]: https://github.com/teralo-co/teralo-app-concrete-reinforcement/blob/main/screens/overview.js
 [card]: https://github.com/teralo-co/teralo-app-concrete-reinforcement/blob/main/screens/card.js
 [test]: https://github.com/teralo-co/teralo-app-concrete-reinforcement/tree/main/test
