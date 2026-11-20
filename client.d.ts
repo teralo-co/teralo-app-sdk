@@ -19,9 +19,16 @@ export function connect(): Promise<Launch>;
 
 /**
  * `fetch` to the app's own server, with the session's token. A 401 asks Teralo for a fresh
- * token and tries once more.
+ * token and tries once more. An answer of 500 or more is reported (`reportError`).
  */
 export function api(path: string, init?: RequestInit): Promise<Response>;
+
+/**
+ * Tells Teralo the screen failed: the person is told the app has a problem and its owner hears
+ * of it. Sent for you on an uncaught error, an unhandled rejection and a server answer of 500
+ * or more. Plain text, at most 500 characters, one every ten seconds.
+ */
+export function reportError(message: unknown): void;
 
 /** Puts a screen of the app in Teralo's URL (plain path segments only). */
 export function navigate(path: string): void;

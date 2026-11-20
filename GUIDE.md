@@ -177,6 +177,11 @@ server. Bundle any library you use: the tracker bundles Chart.js into `app.js`
   links call `preventDefault()` and then `go()`, which calls `navigate()`.
 - **Toasts.** `toast(message, kind)`: plain text under the app's name, at most 200 characters and
   one a second.
+- **Errors.** An uncaught error, an unhandled rejection and a server answer of 500 or more are
+  reported to Teralo for you: the person sees that the app has a problem and Teralo keeps the
+  message (at most 500 characters, one every ten seconds) for whoever looks after the app. A
+  failed `fetch` with no connection is not reported. Call `reportError(message)` for a failure
+  you catch and cannot recover from. Never put a person's data in the message.
 - **Saving files.** The frame cannot download. `saveFile(name, data)` hands Teralo a
   `.csv .xlsx .pdf .json .txt` file of up to 25 MB to save. The tracker's CSV exports are in
   [`screens/overview.js`][overview]; `csv()` in [`screens/lib.js`][lib] puts a quote before any text

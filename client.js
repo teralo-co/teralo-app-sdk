@@ -6,6 +6,8 @@
 const PREFIX = 'teralo:';
 /** How long `api()` waits for a fresh token after a 401 before giving up. */
 const TOKEN_WAIT_MS = 5000;
+/** Teralo takes one error report every ten seconds and drops the rest. */
+const REPORT_EVERY_MS = 10000;
 
 let launch = null;
 let token = null;
@@ -13,6 +15,9 @@ let ready = null;
 const navigateListeners = new Set();
 const themeListeners = new Set();
 const tokenWaiters = new Set();
+/** Errors `fetch` threw: no connection, which is not the app failing. */
+const offline = new WeakSet();
+let lastReport = 0;
 
 function send(type, data = {}) {
 	// `type` last: it is reserved, so no field of `data` can replace it.
@@ -84,20 +89,46 @@ function freshToken() {
 
 /**
  * `fetch` to the app's own server, with the session's token. Teralo renews the token before it
- * ends; a 401 anyway (a laptop that slept) asks for a fresh one and tries once more.
+ * ends; a 401 anyway (a laptop that slept) asks for a fresh one and tries once more. An answer
+ * of 500 or more is reported to Teralo (`reportError`) and still returned.
  */
 export async function api(path, init = {}) {
 	if (!launch) await connect();
-	const call = () => {
+	const call = async () => {
 		const headers = new Headers(init.headers);
 		headers.set('Authorization', `Bearer ${token}`);
-		return fetch(path, { ...init, headers });
+		try {
+			return await fetch(path, { ...init, headers });
+		} catch (error) {
+			if (error instanceof Object) offline.add(error);
+			throw error;
+		}
 	};
-	const response = await call();
-	if (response.status !== 401) return response;
-	await freshToken();
-	return call();
+	let response = await call();
+	if (response.status === 401) {
+		await freshToken();
+		response = await call();
+	}
+	if (response.status >= 500) reportError(`The app's server answered ${response.status}`);
+	return response;
 }
+
+/**
+ * Tells Teralo the screen failed: the person is told the app has a problem and its owner hears
+ * of it. Sent for you on an uncaught error, an unhandled rejection and a server answer of 500
+ * or more; call it for a failure you catch. Plain text, at most 500 characters, one every ten
+ * seconds.
+ */
+export function reportError(message) {
+	if (Date.now() - lastReport < REPORT_EVERY_MS) return;
+	lastReport = Date.now();
+	send('error', { message: String(message ?? '').slice(0, 500) });
+}
+
+window.addEventListener('error', (event) => reportError(event.message));
+window.addEventListener('unhandledrejection', (event) => {
+	if (!offline.has(event.reason)) reportError(event.reason?.message ?? event.reason);
+});
 
 /** Puts a screen of the app in Teralo's URL, so Back, reload and links reach it. */
 export function navigate(path) {

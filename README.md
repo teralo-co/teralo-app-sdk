@@ -137,6 +137,7 @@ toast('Saved', 'success');
 | `navigate(path)`           | Puts a screen in Teralo's URL (`/deliveries/12`), so Back, reload and links reach it  |
 | `onNavigate(fn)`           | Back or Forward in Teralo moved to a screen                                           |
 | `toast(message, kind)`     | A short message under the app's name: `success`, `error` or `info`                    |
+| `reportError(message)`     | Tells Teralo the screen failed. Sent for you on an uncaught error or a 500 answer     |
 | `saveFile(name, data)`     | Saves a `.csv .xlsx .pdf .json .txt` file, up to 25 MB                                 |
 | `openPage(path)`           | From a dashboard card, opens the app's page                                           |
 | `onTheme(fn)`              | Teralo switched between light and dark                                               |
