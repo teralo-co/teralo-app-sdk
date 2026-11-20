@@ -11,6 +11,8 @@ const REPORT_EVERY_MS = 10000;
 
 let launch = null;
 let token = null;
+/** Teralo's private line for the session token, handed over with `init`: only this page holds it. */
+let port = null;
 let ready = null;
 const navigateListeners = new Set();
 const themeListeners = new Set();
@@ -31,6 +33,13 @@ function applyTheme(theme) {
 	for (const [name, value] of Object.entries(theme.vars ?? {})) root.style.setProperty(name, value);
 }
 
+function onToken(message) {
+	if (message.type !== `${PREFIX}token`) return;
+	token = message.token;
+	for (const wake of tokenWaiters) wake();
+	tokenWaiters.clear();
+}
+
 function onMessage(event) {
 	// Only the window that framed this one: Teralo's page (its frame-ancestors rule makes it so).
 	if (event.source !== window.parent) return;
@@ -38,14 +47,15 @@ function onMessage(event) {
 	switch (message.type) {
 		case `${PREFIX}init`:
 			token = message.token;
+			port = event.ports?.[0] ?? null;
+			if (port) port.onmessage = (portEvent) => onToken(portEvent.data ?? {});
 			launch = { surface: message.surface, path: message.path, theme: message.theme };
 			applyTheme(message.theme);
 			ready?.resolve(launch);
 			break;
 		case `${PREFIX}token`:
-			token = message.token;
-			for (const wake of tokenWaiters) wake();
-			tokenWaiters.clear();
+			// ponytail: a Teralo from before the port renews on the window; drop once none is live.
+			onToken(message);
 			break;
 		case `${PREFIX}theme`:
 			applyTheme(message.theme);
@@ -83,7 +93,8 @@ function freshToken() {
 			resolve();
 		};
 		tokenWaiters.add(wake);
-		send('token');
+		if (port) port.postMessage({ type: `${PREFIX}token` });
+		else send('token');
 	});
 }
 
@@ -94,9 +105,9 @@ function freshToken() {
  */
 export async function api(path, init = {}) {
 	if (!launch) await connect();
-	const call = async () => {
+	const call = async (bearer) => {
 		const headers = new Headers(init.headers);
-		headers.set('Authorization', `Bearer ${token}`);
+		headers.set('Authorization', `Bearer ${bearer}`);
 		try {
 			return await fetch(path, { ...init, headers });
 		} catch (error) {
@@ -104,10 +115,12 @@ export async function api(path, init = {}) {
 			throw error;
 		}
 	};
-	let response = await call();
+	const sent = token;
+	let response = await call(sent);
 	if (response.status === 401) {
-		await freshToken();
-		response = await call();
+		// Renewed while the call was out (a laptop waking): use the new one, do not ask again.
+		if (token === sent) await freshToken();
+		response = await call(token);
 	}
 	if (response.status >= 500) reportError(`The app's server answered ${response.status}`);
 	return response;
